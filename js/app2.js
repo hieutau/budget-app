@@ -25,9 +25,6 @@ class OverViewFinance {
 
     } else {
       overviewFinance = JSON.parse(sessionStorage.getItem('overview'));
-
-      // overviewFinance[overviewFinance.length - 1].expense += 100 
-      // console.log(overviewFinance);
     }
 
     return overviewFinance;
@@ -58,12 +55,29 @@ class OverViewFinance {
 // UI CLASS: HANDLES UI TASK
 class UI {
   static addNewBudget(budget) {
-    // console.log(budget);
     const valueTotalBudget = document.querySelector('#budget-amount');
     valueTotalBudget.innerHTML = budget;
     const valueTotalBalance = document.querySelector('#balance-amount');
     const valueTotalExpense = document.querySelector('#expense-amount');
-    valueTotalBalance.innerHTML = Number(budget) + Number(valueTotalExpense.textContent);
+    let balance = Number(budget) - Number(valueTotalExpense.textContent);
+    valueTotalBalance.innerHTML = balance;
+
+  }
+
+  static addNewBudgetUpdateBalance() {
+    const valueTotalBudget = document.querySelector('#budget-amount').textContent;
+    const valueTotalBalance = document.querySelector('#balance-amount').textContent;
+    const valueTotalExpense = document.querySelector('#expense-amount').textContent;
+
+    const overviewFinance = OverViewFinance.getBudgetStorage();
+    console.log(overviewFinance);
+
+    overviewFinance[overviewFinance.length - 1].budget = valueTotalBudget;
+    overviewFinance[overviewFinance.length - 1].balance = valueTotalBalance;
+    overviewFinance[overviewFinance.length - 1].expense = valueTotalExpense;
+
+    sessionStorage.setItem('overview', JSON.stringify(overviewFinance));
+    console.log('Yes update budget and balance to Storage');
   }
 
 
@@ -116,13 +130,27 @@ class UI {
   static deleteExpense(e) {
     if(e.parentElement.className === "delete-icon") {
       e.parentElement.parentElement.parentElement.remove();
-    } else {
       const valueTotalBalance = document.querySelector('#balance-amount');
       const valueTotalExpense = document.querySelector('#expense-amount');
-      valueTotalExpense.innerHTML = Number(valueTotalExpense.textContent) + Number(e.parentElement.parentElement.previousElementSibling.textContent);
-      valueTotalBalance.innerHTML = Number(valueTotalBalance.textContent) + Number(e.parentElement.parentElement.previousElementSibling.textContent);
+
+      let vlUpdateTotalExpense = Number(valueTotalExpense.textContent) - Number(e.parentElement.parentElement.previousElementSibling.textContent);
+      valueTotalExpense.innerHTML = vlUpdateTotalExpense;
+
+      let vlUpdateTotalBalance = Number(valueTotalBalance.textContent) + Number(e.parentElement.parentElement.previousElementSibling.textContent);
+      valueTotalBalance.innerHTML = vlUpdateTotalBalance;
+
+      // delete Item and Update Expense - Balance
+      UI.deleteItemUpdateExpenseBalance(vlUpdateTotalExpense, vlUpdateTotalBalance);
+      console.log('yes');
     }
-  
+  }
+
+  static deleteItemUpdateExpenseBalance(vlUpdateTotalExpense, vlUpdateTotalBalance) {
+    const overviewFinance = OverViewFinance.getBudgetStorage();
+    overviewFinance[overviewFinance.length - 1].expense = vlUpdateTotalExpense;
+    overviewFinance[overviewFinance.length - 1].balance = vlUpdateTotalBalance
+    sessionStorage.setItem('overview', JSON.stringify(overviewFinance));
+    console.log('yes update');
   }
 
   static plusTotolExpense(value) {
@@ -137,7 +165,7 @@ class UI {
 
   static displayOverViewFinance() {
     const listFinance = OverViewFinance.getBudgetStorage();
-    // console.log(listFinance);
+
     listFinance.forEach(finance => {
     console.log(finance);
     document.querySelector('#budget-amount').innerHTML = finance.budget;
@@ -206,8 +234,22 @@ btnAddBudget.addEventListener('click', (e) => {
   if (inputAddBudget == ""){
     alert('Please fill out the full fields!')
   } else {
-    // Add new Budget to UI
-    UI.addNewBudget(inputAddBudget);
+    if(document.querySelector('#expense-amount').textContent === "0") {
+
+      // Add new Budget to UI
+      UI.addNewBudget(inputAddBudget);
+
+      // Add new Budget to viewFinance (Storage)
+      const updateTotalFinance = new viewFinance(inputAddBudget, 0, inputAddBudget);
+      OverViewFinance.addBudgetBalanceStorage(updateTotalFinance);
+    } else {
+      // Add new Budget to UI
+      UI.addNewBudget(inputAddBudget);
+
+      // add new Budget and update balance to 
+      UI.addNewBudgetUpdateBalance();
+    }
+    
 
     // Alert Success
     const alertSuccess = document.querySelector('.budget-feedback');
@@ -216,9 +258,7 @@ btnAddBudget.addEventListener('click', (e) => {
     // Clearn Fields Budget
     UI.clear();
 
-    // Add new Budget to viewFinance
-    const updateTotalFinance = new viewFinance(inputAddBudget, 0, inputAddBudget);
-    OverViewFinance.addBudgetBalanceStorage(updateTotalFinance);
+    
   }
 
 })
@@ -260,8 +300,7 @@ btnAddExpense.addEventListener('click', (e) => {
     // Clearn Fields Expense
     UI.clear();
 
-    // Add new Expense and update Balance 
-    const addExpenseUpdateBalance = new viewFinance(inputAmountExpense, 0, inputAmountExpense);
+    // Add new Expense and update Balance to Storage
     OverViewFinance.addExpenseBalanceStorage(inputAmountExpense);
 
   }
