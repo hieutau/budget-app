@@ -33,7 +33,6 @@ class OverViewFinance {
   // ADD BUDGET AND UPDATE BALANCE
   static addBudgetBalanceStorage(updateTotalFinance) {
     const overviewFinance = this.getBudgetStorage();
-    // console.log(overviewFinance);
     overviewFinance.push(updateTotalFinance);
     sessionStorage.setItem('overview', JSON.stringify(overviewFinance));
   }
@@ -128,7 +127,8 @@ class UI {
   }
 
   static deleteExpense(e) {
-    if(e.parentElement.className === "delete-icon") {
+    if(e.parentElement.className === "delete-icon" || e.parentElement.className.indexOf('edit-icon') != -1) {
+
       e.parentElement.parentElement.parentElement.remove();
       const valueTotalBalance = document.querySelector('#balance-amount');
       const valueTotalExpense = document.querySelector('#expense-amount');
@@ -172,7 +172,22 @@ class UI {
     document.querySelector('#expense-amount').innerHTML = finance.expense;
     document.querySelector('#balance-amount').innerHTML = finance.balance;
     })
-}
+  }
+
+  static customExpense(e) {
+    let index = (e.parentElement.id.slice(-1));
+    let vlName = document.querySelectorAll('.expense-title')[index].textContent;
+
+    let vlExpense = document.querySelectorAll('.expense-amount')[index].textContent;
+    console.log(vlName, vlExpense);
+
+    document.querySelector('#expense-input').value = vlName;
+    document.querySelector('#expense-input').focus();
+
+    document.querySelector('#amount-input').value = vlExpense;
+    document.querySelector('#amount-input').focus();
+
+  }
 }
 
 
@@ -204,6 +219,7 @@ class Store {
       }
     });
     sessionStorage.setItem('expenses', JSON.stringify(expenses));
+    // console.log('yes');
   }
 
 }
@@ -250,7 +266,6 @@ btnAddBudget.addEventListener('click', (e) => {
       UI.addNewBudgetUpdateBalance();
     }
     
-
     // Alert Success
     const alertSuccess = document.querySelector('.budget-feedback');
     UI.alertShow(alertSuccess);
@@ -258,7 +273,6 @@ btnAddBudget.addEventListener('click', (e) => {
     // Clearn Fields Budget
     UI.clear();
 
-    
   }
 
 })
@@ -312,8 +326,17 @@ btnAddExpense.addEventListener('click', (e) => {
 // EVENT: REMOVE A EXPENSE
 document.querySelector('#expense-list__item').addEventListener('click', (e) => {
 
+  // EVENT: CUSTOM A EXPENSE
+  if(e.target.parentElement.className.indexOf('edit-icon') != -1) {
+    // Custom Expense form UI
+    UI.customExpense(e.target);
+
+  }
+
   // Remove Expense form UI
   UI.deleteExpense(e.target);
+
+  // console.log(e.target.parentElement.id.slice(-1));
 
   // Remove Expense form Store
   Store.removeExpense(e.target.parentElement.parentElement.previousElementSibling.textContent);
